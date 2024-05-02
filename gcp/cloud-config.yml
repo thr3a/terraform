@@ -1,0 +1,39 @@
+#cloud-config
+timezone: Asia/Tokyo
+locale: en_US.UTF-8
+package_update: true
+package_upgrade: true
+
+ssh_pwauth: false
+
+groups:
+  - docker
+
+users:
+  - lock_passwd: true
+    name: thr3a
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGXSyuKIS8LBdrDVLn8GcjYqyG3dpGlP/iRVuctqMBhS thr3a@thr3a-m2.local
+    sudo: "ALL=NOPASSWD:ALL"
+    groups: ["docker"]
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - unattended-upgrades
+  - zsh
+
+# Install docker
+runcmd:
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - systemctl enable docker
+  - systemctl start docker
+  - runuser -l thr3a sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  - chsh -s /bin/zsh thr3a

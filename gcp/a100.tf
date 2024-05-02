@@ -84,4 +84,8 @@ resource "google_compute_instance" "deep01" {
     preemptible         = true
     provisioning_model  = "SPOT"
   }
+
+  metadata = {
+    user-data = file("./cloud-config.yml"),
+  }
 }
