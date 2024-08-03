@@ -4,10 +4,12 @@ variable "root_password" {
 }
 
 resource "linode_instance" "main" {
-  label            = "test01"
-  image            = "linode/ubuntu22.04"
-  region           = "jp-osa"
-  type             = "g6-nanode-1"
+  label  = "gpu01"
+  image  = "linode/ubuntu22.04"
+  region = "jp-osa"
+  # 1番小さいモデル
+  # type             = "g6-nanode-1"
+  type             = "g1-gpu-rtx4000a-2"
   authorized_users = ["thr3a"]
   backups_enabled  = false
   booted           = true
