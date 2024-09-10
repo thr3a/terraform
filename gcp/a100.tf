@@ -1,16 +1,17 @@
 locals {
   name         = "deep01"
-  machine_type = "a2-highgpu-1g"
+  machine_type = "n1-standard-8"
   region       = "asia-northeast1"
   zone         = "asia-northeast1-a"
-  gpu          = "nvidia-tesla-a100"
+  gpu          = "nvidia-tesla-t4"
+  gpu_count    = 1
 }
 
 terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.0"
+      version = "~> 6.0"
     }
   }
 
@@ -43,11 +44,11 @@ resource "google_compute_address" "deep01" {
   network_tier = "STANDARD"
 }
 
-resource "google_compute_disk" "deep01" {
+resource "google_compute_disk" "main" {
   provider = google.tokyo
-  image    = "ubuntu-os-cloud/ubuntu-2204-lts"
+  image    = "projects/ml-images/global/images/c0-deeplearning-common-cu123-v20240730-debian-11-py310"
   name     = local.name
-  size     = 200
+  size     = 50 # 最低でも50
   type     = "pd-standard"
   zone     = local.zone
   # snapshot = "xxx"
@@ -61,12 +62,12 @@ resource "google_compute_instance" "deep01" {
 
   guest_accelerator {
     type  = local.gpu
-    count = 1
+    count = local.gpu_count
   }
 
   boot_disk {
-    source      = google_compute_disk.deep01.name
-    auto_delete = false
+    source      = google_compute_disk.main.id
+    auto_delete = true
   }
 
   network_interface {
@@ -81,11 +82,29 @@ resource "google_compute_instance" "deep01" {
   scheduling {
     on_host_maintenance = "TERMINATE" # GPUの場合必須
     automatic_restart   = false
-    preemptible         = true
-    provisioning_model  = "SPOT"
+    # preemptible         = true
+    # provisioning_model  = "SPOT"
   }
 
   metadata = {
     user-data = file("./cloud-config.yml"),
   }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
 }
+
+# resource "google_compute_disk" "sub" {
+#   provider = google.tokyo
+#   name     = format("%s-%s", local.name, "sub")
+#   size     = 80
+#   type     = "pd-standard"
+#   zone     = local.zone
+#   # snapshot = "xxx"
+# }
+
+# resource "google_compute_attached_disk" "default" {
+#   disk     = google_compute_disk.main.id
+#   instance = google_compute_instance.deep01.id
+# }
