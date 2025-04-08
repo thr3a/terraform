@@ -19,7 +19,7 @@ terraform {
     bucket = "terraform.turai.work"
     region = "ap-northeast-1"
     # profile = "terraform"
-    key = "aws/deep/terraform.tfstate"
+    key = "gcp/deep/terraform.tfstate"
   }
 }
 
@@ -44,7 +44,7 @@ resource "google_compute_address" "deep01" {
   network_tier = "STANDARD"
 }
 
-resource "google_compute_disk" "main" {
+resource "google_compute_disk" "deep01" {
   provider = google.tokyo
   image    = "projects/ml-images/global/images/c0-deeplearning-common-cu123-v20240730-debian-11-py310"
   name     = local.name
@@ -87,7 +87,7 @@ resource "google_compute_instance" "deep01" {
   }
 
   metadata = {
-    user-data = file("./cloud-config.yml"),
+    user-data = file("../cloud-config.yml"),
   }
 
   lifecycle {
