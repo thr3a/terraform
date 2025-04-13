@@ -74,7 +74,7 @@ resource "google_compute_instance" "main" {
 
   scheduling {
     # on_host_maintenance = "TERMINATE" # GPUの場合必須
-    automatic_restart   = false
+    automatic_restart = false
     # preemptible         = true
     # provisioning_model  = "SPOT"
   }
